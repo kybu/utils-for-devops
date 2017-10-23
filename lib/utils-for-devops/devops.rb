@@ -47,6 +47,10 @@ module UtilsForDevops
       end
     end
 
+    Thread.new do
+      loop { print r.readpartial(8192) } rescue EOFError
+    end
+
 
     return process
   end
