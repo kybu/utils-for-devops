@@ -4,7 +4,7 @@ require "childprocess"
 module UtilsForDevops
   extend self
 
-  def exec(cmd, wait: true)
+  def exec(cmd, wait: true, print_output: true)
     if cmd.kind_of? String
       cmd=[cmd]
     elsif not cmd.kind_of? Array
@@ -12,8 +12,16 @@ module UtilsForDevops
     end
 
     process = ChildProcess.build *cmd
-    process.io.inherit!
-    process.start
+    if print_output
+      process.io.inherit!
+      process.start
+    else
+      process.io.stdout = process.io.stderr = File.open '/dev/null', 'w'
+      process.io._stdin = File.open '/dev/null', 'r'
+
+      process.start
+      process.io.stdout.close
+    end
 
     if wait
       process.wait
@@ -23,7 +31,12 @@ module UtilsForDevops
     end
   end
 
-  def exec_wait(cmd, line: nil, line_occur: 1)
+  def exec_wait(cmd,
+                print_output: true,
+                line: nil, line_occur: 1,
+                extract: nil, return_process: false,
+                kill: false)
+
     if cmd.kind_of? String
       cmd=[cmd]
     elsif not cmd.kind_of? Array
@@ -38,20 +51,47 @@ module UtilsForDevops
     process.start
     w.close
 
-    if not line
-      yield r
-    else
-      r.each_line do |l|
-        puts l
-        break if l =~ line
+    consumeOutput = lambda do
+      Thread.new do
+        loop { r.readpartial(8192) } rescue EOFError
       end
     end
 
-    Thread.new do
-      loop { print r.readpartial(8192) } rescue EOFError
+    if !line && !extract
+      yield r
+
+    elsif extract
+      m = nil
+
+      r.each_line do |l|
+        puts l if print_output
+
+        if (m = l.match extract)
+          if kill
+            process.stop
+          else
+            consumeOutput
+          end
+
+          return [process, m] if return_process
+          return m
+        end
+      end
+
+    else
+      r.each_line do |l|
+        puts l if print_output
+
+        if l =~ line
+          if kill
+            process.stop
+          else
+            consumeOutput
+          end
+
+          return process
+        end
+      end
     end
-
-
-    return process
   end
 end

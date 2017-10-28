@@ -10,6 +10,8 @@ class For::ForDevopsTest < Minitest::Test
     UtilsForDevops.exec "ls"
 
     assert_raises ChildProcess::LaunchError do UtilsForDevops.exec "ls -l" end
+
+    UtilsForDevops.exec %w"ls -F /", print_output: false
   end
 
   def test_exec_wait_simple
@@ -21,5 +23,20 @@ class For::ForDevopsTest < Minitest::Test
         break if l =~ %r"^usr/$"
       end
     end
+  end
+
+  def test_exec_wait_extract
+    match = UtilsForDevops.exec_wait %w{ls -F /}, extract: %r"^(usr)/"
+
+    assert_kind_of MatchData, match
+    assert_equal 'usr', match[1]
+
+    process, match = UtilsForDevops.exec_wait %w{ls -F /},
+                                              extract: %r"^(usr)/",
+                                              return_process: true
+
+    assert_kind_of ChildProcess::AbstractProcess, process
+    assert_kind_of MatchData, match
+    assert_equal 'usr', match[1]
   end
 end
