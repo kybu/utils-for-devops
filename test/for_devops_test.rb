@@ -37,6 +37,13 @@ class For::ForDevopsTest < Minitest::Test
         break if l =~ %r"^usr/$"
       end
     end
+
+    exec_wait %W{#{RUBYEXE} #{CURRDIR}/generdata.rb --print-words},
+              line: /word1/, line_occur: 1
+    exec_wait %W{#{RUBYEXE} #{CURRDIR}/generdata.rb --print-words},
+              line: /word1/, line_occur: 2
+    exec_wait %W{#{RUBYEXE} #{CURRDIR}/generdata.rb --print-words},
+              line: /end word7/
   end
 
   def test_exec_wait_extract

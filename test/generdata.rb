@@ -7,6 +7,7 @@ opts = GetoptLong.new(
   [ '--size', '-s', GetoptLong::REQUIRED_ARGUMENT ],
   # Sleep between line prints
   ['--line-sleep', GetoptLong::NO_ARGUMENT],
+  ['--print-words', GetoptLong::NO_ARGUMENT],
   ['--beginning-line', GetoptLong::REQUIRED_ARGUMENT])
 
 dataSize = 1
@@ -21,6 +22,18 @@ opts.each do |opt, arg|
       lineSleep = true
     when '--beginning-line'
       beginLine = arg.to_s
+    when '--print-words'
+      puts <<BLA
+word1
+word2
+word3
+word1
+word4 word5
+word6
+word2 word3
+end word7
+BLA
+      exit 0
   end
 end
 

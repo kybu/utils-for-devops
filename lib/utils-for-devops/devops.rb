@@ -139,10 +139,12 @@ module UtilsForDevops
       end
 
     else
+      linesMatched = 0
+
       r.each_line do |l|
         puts l if print_output
 
-        if l =~ line
+        if l =~ line and (linesMatched+=1) >= line_occur
           if kill
             process.stop
           else
