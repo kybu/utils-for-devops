@@ -6,15 +6,16 @@ require 'logger'
 module UtilsForDevops
   extend self
 
-  # TODO process_detach
-  def configure(log_level: Logger::FATAL)
+  # TODO process_detach, detect shell
+  def configure(log_level: Logger::FATAL, shell: '/bin/bash')
     @@log = Logger.new(STDOUT)
     @@log.level = log_level
+    @@shell = shell
   end
 
   def exec(cmd, wait: true, print_output: true)
     if cmd.kind_of? String
-      cmd=[cmd]
+      cmd=%W"#{@@shell} -c #{cmd}"
     elsif not cmd.kind_of? Array
       raise "cmd argument should be an array!"
     end
@@ -51,7 +52,7 @@ module UtilsForDevops
                 kill: false)
 
     if cmd.kind_of? String
-      cmd=[cmd]
+      cmd=%W"#{@@shell} -c #{cmd}"
     elsif not cmd.kind_of? Array
       raise "cmd argument should be an array!"
     end

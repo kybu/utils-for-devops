@@ -22,8 +22,10 @@ class For::ForDevopsTest < Minitest::Test
   def test_exec_simple
     exec ["ls"]
     exec "ls"
+    exec "ls -l"
 
-    assert_raises ChildProcess::LaunchError do exec "ls -l" end
+    assert_raises RuntimeError do exec "asdfsafsadf" end
+    assert_raises ChildProcess::LaunchError do exec ["asdfsafsadf"] end
 
     exec %w"ls -F /", print_output: false
   end
