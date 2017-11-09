@@ -30,6 +30,12 @@ class For::ForDevopsTest < Minitest::Test
     exec %w"ls -F /", print_output: false
   end
 
+  def test_exec_output
+    o = exec %W{#{RUBYEXE} #{CURRDIR}/generdata.rb --print-words}, return_output: true
+
+    assert o.index 'word6'
+  end
+
   def test_exec_wait_simple
     exec_wait %w{ls -F /}, line: %r"^usr/$"
 

@@ -1,1 +1,1 @@
-require 'utils-for-devops/devops'
+require_relative 'utils-for-devops/devops'

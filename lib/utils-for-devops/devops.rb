@@ -1,4 +1,4 @@
-require "utils-for-devops/version"
+require_relative "version"
 require "childprocess"
 require 'thread'
 require 'logger'
@@ -13,7 +13,7 @@ module UtilsForDevops
     @@shell = shell
   end
 
-  def exec(cmd, wait: true, print_output: true)
+  def exec(cmd, wait: true, print_output: true, return_output: false)
     if cmd.kind_of? String
       cmd=%W"#{@@shell} -c #{cmd}"
     elsif not cmd.kind_of? Array
@@ -21,7 +21,21 @@ module UtilsForDevops
     end
 
     process = ChildProcess.build *cmd
-    if print_output
+
+    if return_output
+      wait = true
+      r, w = IO.pipe
+
+      process.io.stdout = process.io.stderr = w
+      process.start
+      w.close
+
+      o = ""
+      begin
+        loop { o = r.readpartial 8192 }
+      rescue EOFError
+      end
+    elsif print_output
       process.io.inherit!
       process.start
     else
@@ -37,6 +51,8 @@ module UtilsForDevops
       if process.exit_code != 0
         raise "'#{cmd.join ' '}' failed!"
       end
+
+      return o if return_output
     end
   end
 
